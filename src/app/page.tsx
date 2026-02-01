@@ -73,20 +73,10 @@ export default function Home() {
             )}
 
             <div ref={resultsRef} className="mt-8 scroll-mt-20">
-              {analysis ? (
+              {analysis && (
                 <AnalysisResults 
                   analysis={analysis}
                 />
-              ) : (
-                !isLoading && (
-                  <Alert className="mt-8 bg-card/50 backdrop-blur-sm border border-border/20">
-                    <Terminal className="h-4 w-4" />
-                    <AlertTitle>Awaiting Analysis</AlertTitle>
-                    <AlertDescription>
-                      Your analysis results will appear here once you upload your resume.
-                    </AlertDescription>
-                  </Alert>
-                )
               )}
             </div>
           </div>
