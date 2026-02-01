@@ -4,8 +4,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'ResumeAce - ATS Resume Checker',
-  description: 'Analyze your resume against ATS standards and get an instant score with AI-powered suggestions.',
+  title: 'ATS Resume Checker – Free Resume ATS Score & Optimization Tool',
+  description: 'Check your resume ATS score instantly. Our free ATS resume checker analyzes keywords, formatting & skills to boost interview callbacks.',
 };
 
 export default function RootLayout({
