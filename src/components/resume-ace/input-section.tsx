@@ -2,26 +2,29 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
 import { ResumeUpload } from './resume-upload';
 
 interface InputSectionProps {
-  onAnalyze: (resume: string, jd: string, role: string) => void;
+  onAnalyze: (file: File, text: string) => void;
   isLoading: boolean;
+  resetAnalysis: () => void;
 }
 
-export function InputSection({ onAnalyze, isLoading }: InputSectionProps) {
+export function InputSection({ onAnalyze, isLoading, resetAnalysis }: InputSectionProps) {
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState('');
-  const [jobDescription, setJobDescription] = useState('');
-  const [role, setRole] = useState('software-engineer');
   const { toast } = useToast();
 
+  const handleTextExtracted = (text: string, file: File) => {
+    setResumeText(text);
+    setResumeFile(file);
+  };
+
   const handleButtonClick = () => {
-    if (!resumeText.trim()) {
+    if (!resumeFile || !resumeText) {
       toast({
         title: 'Resume is empty',
         description: 'Please upload your resume to begin analysis.',
@@ -29,41 +32,27 @@ export function InputSection({ onAnalyze, isLoading }: InputSectionProps) {
       });
       return;
     }
-    onAnalyze(resumeText, jobDescription, role);
+    onAnalyze(resumeFile, resumeText);
   };
+
+  const handleReset = () => {
+    setResumeFile(null);
+    setResumeText('');
+    resetAnalysis();
+  }
 
   return (
     <Card className="bg-card/50 backdrop-blur-sm border border-border/20 shadow-xl">
       <CardHeader>
         <CardTitle>Check Your Resume</CardTitle>
         <CardDescription>
-          Upload your resume file, then optionally paste a job description to see your ATS score.
+          Upload your resume file to see your ATS score. It's free and secure.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-6">
-        <ResumeUpload onTextExtracted={setResumeText} />
+        <ResumeUpload onTextExtracted={handleTextExtracted} resetAnalysis={handleReset} />
         
-        <div className="grid grid-cols-1 gap-6">
-          <Textarea
-            placeholder="Paste the job description here (optional for a more accurate score)..."
-            className="min-h-[200px] text-sm focus:ring-1 focus:ring-ring bg-background/50"
-            value={jobDescription}
-            onChange={(e) => setJobDescription(e.target.value)}
-            aria-label="Job Description Text Area"
-          />
-        </div>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <Select value={role} onValueChange={setRole}>
-            <SelectTrigger className="w-full sm:w-[280px]" aria-label="Select Role">
-              <SelectValue placeholder="Select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="software-engineer">Software Engineer</SelectItem>
-              <SelectItem value="marketing">Marketing</SelectItem>
-              <SelectItem value="sales">Sales</SelectItem>
-              <SelectItem value="designer">Designer</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button
             onClick={handleButtonClick}
             disabled={isLoading || !resumeText}

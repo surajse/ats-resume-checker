@@ -1,190 +1,163 @@
-import { ACTION_VERBS, SECTION_HEADERS, SKILL_KEYWORDS, STOP_WORDS, WEAK_VERBS } from './constants';
+import { ACTION_VERBS, SECTION_HEADERS, COMMON_MISSPELLINGS } from './constants';
+
+// --- INTERFACES ---
+interface AnalysisCheck {
+  pass: boolean;
+  premium: boolean;
+  name: string;
+  details: string;
+}
+
+interface AnalysisCategory {
+  score: number;
+  checks: AnalysisCheck[];
+}
 
 export interface AnalysisResult {
   score: number;
-  wordCount: {
-    count: number;
-    pass: boolean;
-  };
-  keywords: {
-    matched: string[];
-    missing: string[];
-    density: number;
-    jdKeywords: string[];
-  };
-  sections: {
-    found: string[];
-    missing: string[];
-    pass: boolean;
-  };
-  formatting: {
-    longParagraphs: number;
-    allCaps: number;
-    weakVerbs: string[];
-    pass: boolean;
-  };
-  actionVerbs: {
-    count: number;
-    found: string[];
-    pass: boolean;
-  };
+  issueCount: number;
+  content: AnalysisCategory;
+  sections: AnalysisCategory;
+  atsEssentials: AnalysisCategory;
 }
 
-const MIN_WORDS = 450;
-const MAX_WORDS = 800;
-
+// --- TOKENIZATION & NORMALIZATION ---
 const tokenize = (text: string): string[] => {
   if (!text) return [];
-  return text.toLowerCase().replace(/[^\w\s-]/g, '').split(/\s+/).filter(Boolean);
+  return text.toLowerCase().replace(/[^\w\s-]/g, ' ').split(/\s+/).filter(Boolean);
 };
 
-const getWordCount = (tokens: string[]): number => tokens.length;
+// --- CHECK IMPLEMENTATIONS ---
 
-const extractKeywords = (text: string, limit: number = 50): string[] => {
-  const tokens = tokenize(text);
-  const frequencies: Record<string, number> = {};
-  
-  tokens.forEach(token => {
-    if (!STOP_WORDS.has(token) && token.length > 2) {
-      frequencies[token] = (frequencies[token] || 0) + 1;
+// CONTENT CHECKS
+const checkQuantifiedImpact = (tokens: string[]): boolean => {
+  const impactRegex = /[%$0-9]/;
+  return tokens.some(token => impactRegex.test(token));
+};
+
+const checkActionVerbs = (tokens: string[]): boolean => {
+  const actionVerbCount = tokens.filter(token => ACTION_VERBS.has(token)).length;
+  return actionVerbCount > 5; // Passes if more than 5 action verbs are found
+};
+
+const checkRepetition = (tokens: string[]): boolean => {
+    if (tokens.length < 50) return true;
+    const freq: Record<string, number> = {};
+    tokens.forEach(t => freq[t] = (freq[t] || 0) + 1);
+    const mostFrequent = Object.values(freq).sort((a, b) => b - a)[0];
+    // Fails if the most frequent word makes up more than 3% of the text
+    return (mostFrequent / tokens.length) <= 0.03;
+};
+
+const checkSpelling = (tokens: string[]): boolean => {
+    const misspellings = tokens.filter(token => COMMON_MISSPELLINGS[token]);
+    return misspellings.length < 3; // Fails if 3 or more common misspellings are found
+};
+
+// SECTIONS CHECKS
+const checkSections = (text: string): { found: string[], pass: boolean } => {
+  const required = ['contact', 'summary', 'experience', 'skills', 'education'];
+  const textLower = text.toLowerCase();
+  const foundSections: string[] = [];
+
+  for (const sectionName in SECTION_HEADERS) {
+    const alternatives = SECTION_HEADERS[sectionName];
+    if (alternatives.some(alt => textLower.includes(alt))) {
+      foundSections.push(sectionName);
     }
-  });
-
-  return Object.entries(frequencies)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(entry => entry[0]);
+  }
+  const uniqueFound = [...new Set(foundSections)];
+  const pass = required.every(req => uniqueFound.includes(req));
+  return { found: uniqueFound, pass };
 };
 
-const analyzeKeywords = (resumeTokens: string[], jdText: string, role: string): AnalysisResult['keywords'] => {
-  const roleSpecificKeywords = SKILL_KEYWORDS[role] || [];
-  const jdKeywords = [...new Set([...extractKeywords(jdText, 30), ...roleSpecificKeywords])];
-  const resumeKeywords = new Set(resumeTokens);
-  
-  const matched = jdKeywords.filter(keyword => resumeKeywords.has(keyword));
-  const missing = jdKeywords.filter(keyword => !resumeKeywords.has(keyword));
-  
-  const keywordTokens = resumeTokens.filter(token => jdKeywords.includes(token));
-  const density = resumeTokens.length > 0 ? (keywordTokens.length / resumeTokens.length) * 100 : 0;
-  
-  return {
-    matched,
-    missing,
-    density,
-    jdKeywords,
-  };
-};
-
-const detectSections = (resumeText: string): AnalysisResult['sections'] => {
-  const text = resumeText.toLowerCase();
-  const found: string[] = [];
-  SECTION_HEADERS.forEach(header => {
-    const regex = new RegExp(`^\\s*${header}\\s*[:\\n]`, 'im');
-    if (regex.test(text)) {
-      found.push(header);
-    }
-  });
-
-  const uniqueFound = [...new Set(found.map(f => {
-    if (f.includes('experience')) return 'experience';
-    if (f.includes('education')) return 'education';
-    if (f.includes('skills')) return 'skills';
-    if (f.includes('project')) return 'projects';
-    return f;
-  }))];
-
-  const required = ['experience', 'education', 'skills'];
-  const missing = required.filter(section => !uniqueFound.includes(section));
-
-  return {
-    found: uniqueFound,
-    missing,
-    pass: missing.length === 0,
-  };
-};
-
-const checkFormatting = (resumeText: string, resumeTokens: string[]): AnalysisResult['formatting'] => {
-  const paragraphs = resumeText.split(/\n\s*\n/).filter(p => p.trim().length > 0);
-  const longParagraphs = paragraphs.filter(p => p.split(/\s+/).length > 100).length;
-
-  const allCaps = resumeTokens.filter(token => token.length > 3 && token === token.toUpperCase()).length;
-
-  const weakVerbsFound = WEAK_VERBS.filter(verb => resumeText.toLowerCase().includes(verb));
-  
-  const pass = longParagraphs === 0 && allCaps < 5 && weakVerbsFound.length < 3;
-
-  return {
-    longParagraphs,
-    allCaps,
-    weakVerbs: weakVerbsFound,
-    pass,
-  };
+const checkContactInfo = (text: string): boolean => {
+  const emailRegex = /[\w.-]+@[\w.-]+\.\w+/;
+  const phoneRegex = /(\d{3}[-.\s]?){2}\d{4}/;
+  return emailRegex.test(text) && phoneRegex.test(text);
 };
 
 
-const checkActionVerbs = (resumeText: string): AnalysisResult['actionVerbs'] => {
-    const text = resumeText.toLowerCase();
-    const found = ACTION_VERBS.filter(verb => text.includes(verb));
-    const pass = found.length >= 10;
-    return {
-        count: found.length,
-        found,
-        pass,
-    };
+// ATS ESSENTIALS CHECKS
+const checkFileCompatibility = (fileType: string): boolean => {
+    return fileType === 'application/pdf' || fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+}
+
+const checkSimpleLayout = (text: string): boolean => {
+    const complexKeywords = ['table', 'column', 'graphic', 'chart'];
+    const textLower = text.toLowerCase();
+    return !complexKeywords.some(keyword => textLower.includes(keyword));
+};
+
+const checkEmailPresent = (text: string): boolean => {
+    const emailRegex = /[\w.-]+@[\w.-]+\.\w+/;
+    return emailRegex.test(text);
+}
+
+const checkPhoneNumberPresent = (text: string): boolean => {
+    const phoneRegex = /(\d{3}[-.\s]?){2}\d{4}/;
+    return phoneRegex.test(text);
+}
+
+const checkHyperlinks = (text: string): boolean => {
+    const httpRegex = /https?:\/\//;
+    return httpRegex.test(text.toLowerCase());
 }
 
 
-const calculateScore = (analysis: Omit<AnalysisResult, 'score'>): number => {
-    // Keyword Score (40%)
-    const { keywords, wordCount, sections, formatting, actionVerbs } = analysis;
-    const maxKeywordScore = keywords.jdKeywords.length;
-    const keywordScore = maxKeywordScore > 0 ? (keywords.matched.length / maxKeywordScore) * 100 : 100;
+// --- MAIN ANALYSIS FUNCTION ---
+export const analyzeResume = (resumeText: string, file: File): AnalysisResult => {
+  const tokens = tokenize(resumeText);
 
-    // Formatting Score (25%)
-    let formattingScore = 100;
-    if (formatting.longParagraphs > 0) formattingScore -= 40;
-    if (formatting.allCaps > 5) formattingScore -= 30;
-    if (formatting.weakVerbs.length > 2) formattingScore -= 30;
-    formattingScore = Math.max(0, formattingScore);
+  // Perform all checks
+  const contentChecks: AnalysisCheck[] = [
+    { name: 'ATS Parse Rate', pass: resumeText.length > 100, premium: false, details: resumeText.length > 100 ? "Resume text was successfully parsed." : "Could not read enough text from the resume." },
+    { name: 'Quantifying Impact', pass: checkQuantifiedImpact(tokens), premium: true, details: checkQuantifiedImpact(tokens) ? "Achievements are quantified with numbers." : "Add numbers, percentages, or dollar amounts to show impact." },
+    { name: 'Action Verbs', pass: checkActionVerbs(tokens), premium: false, details: checkActionVerbs(tokens) ? "Strong action verbs are used." : "Replace weak phrases with stronger action verbs." },
+    { name: 'Word Repetition', pass: checkRepetition(tokens), premium: false, details: checkRepetition(tokens) ? "Word usage is varied and effective." : "Some words are overused. Try to diversify your language." },
+    { name: 'Spelling & Grammar', pass: checkSpelling(tokens), premium: true, details: checkSpelling(tokens) ? "No major spelling errors found." : "Potential spelling or grammar issues detected." },
+  ];
 
-    // Structure Score (20%)
-    const structureScore = sections.pass ? 100 : (sections.found.length / (sections.found.length + sections.missing.length)) * 100;
-    
-    // Action Verbs & Word Count Score (15%)
-    let miscScore = 0;
-    miscScore += actionVerbs.count > 15 ? 50 : (actionVerbs.count / 15) * 50;
-    miscScore += wordCount.pass ? 50 : 0;
+  const sectionsResult = checkSections(resumeText);
+  const sectionsChecks: AnalysisCheck[] = [
+    { name: 'Essential Sections', pass: sectionsResult.pass, premium: true, details: sectionsResult.pass ? "All key sections like Experience and Skills are present." : `Missing sections: ${['contact', 'summary', 'experience', 'skills', 'education'].filter(s => !sectionsResult.found.includes(s)).join(', ')}` },
+    { name: 'Contact Information', pass: checkContactInfo(resumeText), premium: false, details: checkContactInfo(resumeText) ? "Contact info (email & phone) is present." : "Missing a valid email or phone number." },
+  ];
 
-
-    const weightedScore = (keywordScore * 0.40) + (formattingScore * 0.25) + (structureScore * 0.20) + (miscScore * 0.15);
-    
-    return Math.round(Math.min(100, weightedScore));
-};
-
-
-export const analyzeResume = (resumeText: string, jobDescription: string, role: string): AnalysisResult => {
-  const resumeTokens = tokenize(resumeText);
-  const count = getWordCount(resumeTokens);
+  const atsEssentialsChecks: AnalysisCheck[] = [
+    { name: 'File Format & Size', pass: checkFileCompatibility(file.type) && file.size < 2 * 1024 * 1024, premium: false, details: "File is a compatible format (PDF/DOCX) and size (<2MB)." },
+    { name: 'Simple Design', pass: checkSimpleLayout(resumeText), premium: false, details: checkSimpleLayout(resumeText) ? "Resume has a clean, single-column layout." : "Complex layouts with tables or columns can confuse ATS." },
+    { name: 'Email Address', pass: checkEmailPresent(resumeText), premium: false, details: checkEmailPresent(resumeText) ? "A professional email address was found." : "An email address could not be found." },
+    { name: 'Phone Number', pass: checkPhoneNumberPresent(resumeText), premium: false, details: checkPhoneNumberPresent(resumeText) ? "A phone number was found." : "A phone number could not be found." },
+    { name: 'Hyperlinks', pass: checkHyperlinks(resumeText), premium: true, details: checkHyperlinks(resumeText) ? "Includes links to portfolios or LinkedIn." : "Consider adding a link to your LinkedIn or portfolio." },
+  ];
   
-  const wordCount = {
-    count,
-    pass: count >= MIN_WORDS && count <= MAX_WORDS,
-  };
-  
-  const keywords = analyzeKeywords(resumeTokens, jobDescription, role);
-  const sections = detectSections(resumeText);
-  const formatting = checkFormatting(resumeText, resumeTokens);
-  const actionVerbs = checkActionVerbs(resumeText);
-  
-  const analysis: Omit<AnalysisResult, 'score'> = {
-    wordCount,
-    keywords,
-    sections,
-    formatting,
-    actionVerbs,
+  // Calculate scores
+  const calculateCategoryScore = (checks: AnalysisCheck[]) => {
+    if (checks.length === 0) return 100;
+    const passed = checks.filter(c => c.pass).length;
+    return Math.round((passed / checks.length) * 100);
   };
 
-  const score = calculateScore(analysis);
+  const contentScore = calculateCategoryScore(contentChecks);
+  const sectionsScore = calculateCategoryScore(sectionsChecks);
+  const atsEssentialsScore = calculateCategoryScore(atsEssentialsChecks);
 
-  return { score, ...analysis };
+  // Calculate final weighted score
+  const finalScore = Math.round(
+    contentScore * 0.30 +
+    sectionsScore * 0.30 +
+    atsEssentialsScore * 0.40
+  );
+  
+  const allChecks = [...contentChecks, ...sectionsChecks, ...atsEssentialsChecks];
+  const issueCount = allChecks.filter(c => !c.pass).length;
+
+  return {
+    score: finalScore,
+    issueCount,
+    content: { score: contentScore, checks: contentChecks },
+    sections: { score: sectionsScore, checks: sectionsChecks },
+    atsEssentials: { score: atsEssentialsScore, checks: atsEssentialsChecks },
+  };
 };

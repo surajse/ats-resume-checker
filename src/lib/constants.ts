@@ -12,10 +12,10 @@ export const STOP_WORDS = new Set([
   'under', 'until', 'up', 'very', 'was', 'wasn\'t', 'we', 'we\'d', 'we\'ll', 'we\'re', 'we\'ve', 'were', 'weren\'t',
   'what', 'what\'s', 'when', 'when\'s', 'where', 'where\'s', 'which', 'while', 'who', 'who\'s', 'whom', 'why', 'why\'s',
   'with', 'won\'t', 'would', 'wouldn\'t', 'you', 'you\'d', 'you\'ll', 'you\'re', 'you\'ve', 'your', 'yours', 'yourself',
-  'yourselves', 'including', 'using', 'based',
+  'yourselves', 'including', 'using', 'based', 'experience', 'work', 'project', 'education', 'skill', 'summary'
 ]);
 
-export const ACTION_VERBS = [
+export const ACTION_VERBS = new Set([
   'accelerated', 'achieved', 'acquired', 'adapted', 'administered', 'advanced', 'advised', 'advocated', 'allocated',
   'analyzed', 'authored', 'automated', 'balanced', 'boosted', 'budgeted', 'built', 'calculated', 'centralized',
   'chaired', 'clarified', 'collaborated', 'conceived', 'conceptualized', 'consolidated', 'constructed', 'consulted',
@@ -32,18 +32,21 @@ export const ACTION_VERBS = [
   'saved', 'scheduled', 'secured', 'selected', 'simplified', 'slashed', 'solidified', 'solved', 'spearheaded', 'specified',
   'standardized', 'streamlined', 'strengthened', 'supervised', 'synthesized', 'systematized', 'tested', 'trained',
   'transformed', 'unified', 'upgraded', 'validated', 'verbalized', 'verified', 'visualized', 'wrote'
-];
+]);
 
 export const WEAK_VERBS = [
   'worked on', 'responsible for', 'assisted with', 'helped with', 'tasked with', 'participated in', 'involved in',
   'managed', 'led', 'handled', 'supported', 'did', 'made'
 ];
 
-export const SECTION_HEADERS = [
-  'profile', 'summary', 'objective', 'experience', 'work experience', 'professional experience', 'employment history',
-  'education', 'skills', 'technical skills', 'projects', 'personal projects', 'publications', 'certifications',
-  'awards', 'honors', 'volunteer experience'
-];
+export const SECTION_HEADERS: Record<string, string[]> = {
+  'contact': ['contact', 'information', 'email', 'phone', 'linkedin'],
+  'summary': ['summary', 'profile', 'objective'],
+  'experience': ['experience', 'work experience', 'professional experience', 'employment history'],
+  'education': ['education'],
+  'skills': ['skills', 'technical skills', 'proficiencies'],
+  'projects': ['projects', 'personal projects'],
+};
 
 export const SKILL_KEYWORDS: Record<string, string[]> = {
   'software-engineer': [
@@ -65,4 +68,17 @@ export const SKILL_KEYWORDS: Record<string, string[]> = {
     'wireframing', 'prototyping', 'user research', 'usability testing', 'design system', 'visual design', 'interaction design',
     'responsive design', 'mobile design'
   ],
+};
+
+// A very basic list for a simple "spell check".
+// In a real app, a more sophisticated library would be used.
+export const COMMON_MISSPELLINGS: Record<string, string> = {
+  'responsable': 'responsible',
+  'managment': 'management',
+  'experiance': 'experience',
+  'acheived': 'achieved',
+  'wierd': 'weird',
+  'seperate': 'separate',
+  'definately': 'definitely',
+  'goverment': 'government',
 };
