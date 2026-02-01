@@ -8,7 +8,7 @@ import { AnalysisResults } from '@/components/resume-ace/analysis-results';
 import { InputSection } from '@/components/resume-ace/input-section';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Terminal, ShieldCheck, Zap, ServerOff, Infinity, BarChart, FileText, Briefcase, DraftingCompass, UserCheck, Search } from 'lucide-react';
 import { FaqSection } from '@/components/resume-ace/faq-section';
 
 export default function Home() {
@@ -38,6 +38,15 @@ export default function Home() {
     setResumeText('');
   }
 
+  const analysisFeatures = [
+    { icon: BarChart, title: 'ATS Parse Rate', description: "Checks if your resume's text is readable by automated systems." },
+    { icon: Search, title: 'Resume Keyword Matching', description: 'Compares your resume keywords against job description needs.' },
+    { icon: Briefcase, title: 'Resume Sections Detection', description: 'Ensures all critical sections like Experience and Skills are found.' },
+    { icon: UserCheck, title: 'Skills Relevance', description: 'Analyzes the hard and soft skills listed for job relevance.' },
+    { icon: DraftingCompass, title: 'Formatting Compatibility', description: 'Verifies the layout is simple and ATS-friendly.' },
+    { icon: FileText, title: 'Quantified Achievements', description: 'Looks for numbers and metrics that prove your impact.' },
+  ];
+
   return (
     <div className="flex min-h-screen flex-col bg-background font-body">
       <div className="absolute top-0 z-[-2] h-screen w-screen bg-background bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(110,42,241,0.05),rgba(255,255,255,0))]"></div>
@@ -47,10 +56,10 @@ export default function Home() {
           <div className="mx-auto max-w-5xl">
             <section className="text-center mb-12">
               <h1 className="font-headline text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-b from-primary via-primary/80 to-primary/70 bg-clip-text text-transparent">
-                ATS Resume Checker
+                Free ATS Resume Checker – Get Your Resume Score Instantly
               </h1>
               <p className="mt-6 max-w-3xl mx-auto text-lg text-muted-foreground">
-                Is your resume good enough to pass the applicant tracking systems used by top companies? Upload it now to get your free ATS score and a detailed analysis.
+                Is Your Resume ATS-Friendly? Upload your resume and get an instant ATS score based on parsing, keywords, and resume quality — 100% private.
               </p>
             </section>
             
@@ -81,6 +90,89 @@ export default function Home() {
               )}
             </div>
           </div>
+          
+          {!analysis && !isLoading && (
+            <>
+              <section className="mt-20">
+                <h2 className="text-center font-headline text-4xl font-extrabold tracking-tight text-primary mb-8">
+                  What ResumeAce's ATS Resume Checker Analyzes
+                </h2>
+                <div className="max-w-4xl mx-auto grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {analysisFeatures.map(feature => (
+                    <div key={feature.title} className="bg-card/50 p-4 rounded-lg border border-border/20 flex items-start gap-3">
+                        <feature.icon className="h-5 w-5 text-accent mt-1 flex-shrink-0" />
+                        <div>
+                            <h3 className="font-semibold text-primary">{feature.title}</h3>
+                            <p className="text-sm text-muted-foreground">{feature.description}</p>
+                        </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="mt-20 text-center">
+                <h2 className="font-headline text-4xl font-extrabold tracking-tight text-primary mb-8">How Our ATS Resume Checker Works</h2>
+                <div className="max-w-3xl mx-auto text-muted-foreground grid md:grid-cols-4 gap-8">
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent text-accent-foreground font-bold text-2xl mb-2">1</div>
+                    <h3 className="font-semibold text-primary">Upload Resume</h3>
+                    <p className="text-sm">Upload your resume in PDF or DOCX format.</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent text-accent-foreground font-bold text-2xl mb-2">2</div>
+                    <h3 className="font-semibold text-primary">Browser-Based Parsing</h3>
+                    <p className="text-sm">Your resume is parsed locally in your browser. Nothing is uploaded.</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent text-accent-foreground font-bold text-2xl mb-2">3</div>
+                    <h3 className="font-semibold text-primary">ATS Analysis</h3>
+                    <p className="text-sm">We analyze it against 16+ ATS compatibility checks.</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center h-16 w-16 rounded-full bg-accent text-accent-foreground font-bold text-2xl mb-2">4</div>
+                    <h3 className="font-semibold text-primary">Score & Tips</h3>
+                    <p className="text-sm">Get your score and actionable tips to improve.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="mt-20">
+                <div className="max-w-3xl mx-auto">
+                    <h2 className="text-center font-headline text-4xl font-extrabold tracking-tight text-primary mb-8">What is an Applicant Tracking System (ATS)?</h2>
+                    <p className="text-lg text-muted-foreground text-center mb-6">An Applicant Tracking System (ATS) is software used by companies to manage job applications. It scans resumes to find the most qualified candidates by looking for specific keywords, skills, and formatting. If a resume isn't 'ATS-friendly,' it can be automatically rejected before a human ever sees it.</p>
+                </div>
+              </section>
+              
+              <section className="mt-20">
+                  <h2 className="text-center font-headline text-4xl font-extrabold tracking-tight text-primary mb-8">
+                      Why ResumeAce Is Different
+                  </h2>
+                  <div className="max-w-4xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                      <div className="flex flex-col items-center">
+                          <ShieldCheck className="h-10 w-10 text-accent mb-2"/>
+                          <h3 className="font-semibold text-primary mb-1">No Signup Required</h3>
+                          <p className="text-sm text-muted-foreground">Get your score instantly without creating an account.</p>
+                      </div>
+                      <div className="flex flex-col items-center">
+                          <ServerOff className="h-10 w-10 text-accent mb-2"/>
+                          <h3 className="font-semibold text-primary mb-1">Runs Locally in Browser</h3>
+                          <p className="text-sm text-muted-foreground">Your resume is never uploaded. Your data stays private.</p>
+                      </div>
+                      <div className="flex flex-col items-center">
+                          <Zap className="h-10 w-10 text-accent mb-2"/>
+                          <h3 className="font-semibold text-primary mb-1">Instant & Fast</h3>
+                          <p className="text-sm text-muted-foreground">Our checker is lightweight and gives you results in seconds.</p>
+                      </div>
+                      <div className="flex flex-col items-center">
+                          <Infinity className="h-10 w-10 text-accent mb-2"/>
+                          <h3 className="font-semibold text-primary mb-1">Free Forever</h3>
+                          <p className="text-sm text-muted-foreground">Our core ATS checks are always free for job seekers.</p>
+                      </div>
+                  </div>
+              </section>
+            </>
+          )}
+
           <FaqSection />
         </div>
       </main>
