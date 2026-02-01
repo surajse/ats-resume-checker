@@ -81,19 +81,19 @@ export default function Home() {
             </div>
           </div>
         </div>
-        </main>
-        <footer className="py-6 mt-16 text-center text-sm text-muted-foreground border-t">
-          <div className="container">
-            <p>&copy; 2024 ResumeAce. All rights reserved.</p>
-            <div className="mt-4 text-xs space-x-2 md:space-x-4">
-              <span className="font-semibold">Built by hiring & ATS research</span>
-              <span>•</span>
-              <span className="font-semibold">Based on real ATS rules</span>
-              <span>•</span>
-              <span className="font-semibold">Privacy guaranteed – resumes not stored</span>
-            </div>
+      </main>
+      <footer className="py-6 mt-16 text-center text-sm text-muted-foreground border-t">
+        <div className="container">
+          <p>&copy; 2024 ResumeAce. All rights reserved.</p>
+          <div className="mt-4 text-xs space-x-2 md:space-x-4">
+            <span className="font-semibold">Built by hiring & ATS research</span>
+            <span>•</span>
+            <span className="font-semibold">Based on real ATS rules</span>
+            <span>•</span>
+            <span className="font-semibold">Privacy guaranteed – resumes not stored</span>
           </div>
-        </footer>
+        </div>
+      </footer>
     </div>
   );
 }
