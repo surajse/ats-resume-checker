@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
+import { ResumeUpload } from './resume-upload';
 
 interface InputSectionProps {
   onAnalyze: (resume: string, jd: string, role: string) => void;
@@ -23,7 +24,7 @@ export function InputSection({ onAnalyze, isLoading }: InputSectionProps) {
     if (!resumeText.trim()) {
       toast({
         title: 'Resume is empty',
-        description: 'Please paste your resume text to begin analysis.',
+        description: 'Please upload your resume to begin analysis.',
         variant: 'destructive',
       });
       return;
@@ -34,23 +35,18 @@ export function InputSection({ onAnalyze, isLoading }: InputSectionProps) {
   return (
     <Card className="bg-card/50 backdrop-blur-sm border border-border/20 shadow-xl">
       <CardHeader>
-        <CardTitle>Resume and Job Details</CardTitle>
+        <CardTitle>Check Your Resume</CardTitle>
         <CardDescription>
-          Provide your resume, the job description, and select the role you're applying for.
+          Upload your resume file, then optionally paste a job description to see your ATS score.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-6">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <ResumeUpload onTextExtracted={setResumeText} />
+        
+        <div className="grid grid-cols-1 gap-6">
           <Textarea
-            placeholder="Paste your resume text here..."
-            className="min-h-[300px] text-sm focus:ring-1 focus:ring-ring bg-background/50"
-            value={resumeText}
-            onChange={(e) => setResumeText(e.target.value)}
-            aria-label="Resume Text Area"
-          />
-          <Textarea
-            placeholder="Paste the job description here (optional)..."
-            className="min-h-[300px] text-sm focus:ring-1 focus:ring-ring bg-background/50"
+            placeholder="Paste the job description here (optional for a more accurate score)..."
+            className="min-h-[200px] text-sm focus:ring-1 focus:ring-ring bg-background/50"
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
             aria-label="Job Description Text Area"
@@ -70,7 +66,7 @@ export function InputSection({ onAnalyze, isLoading }: InputSectionProps) {
           </Select>
           <Button
             onClick={handleButtonClick}
-            disabled={isLoading}
+            disabled={isLoading || !resumeText}
             size="lg"
             className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 transition-transform duration-200 hover:scale-105"
           >
