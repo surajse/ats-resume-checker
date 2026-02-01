@@ -1,0 +1,125 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership model. All user-related data,
+ * including profile information and resume analyses, is private and can only be accessed by the
+ * authenticated user who owns the data.
+ *
+ * Data Structure: The data is hierarchically organized under the /users/{userId} collection.
+ * Each user has a primary document, and all their related data, such as resume analyses,
+ * is stored in subcollections under that user's document.
+ *
+ * Key Security Decisions:
+ * - User Enumeration is explicitly disallowed by denying `list` access on the top-level `/users` collection.
+ * - All operations require user authentication. Anonymous access to Firestore is denied.
+ * - Users have full control (CRUD) over their own profile document and their own subcollections.
+ * - Relational integrity is enforced on create, ensuring that data stored within a user's
+ *   document tree contains a `userId` field that correctly references the parent user.
+ *
+ * Denormalization for Authorization: The data structure follows a path-based security model,
+ * which is a form of denormalization for authorization. By nesting a user's data under their
+ * unique `/users/{userId}` path, we can write simple, fast, and secure rules that check ownership
+ * based on the `userId` wildcard without needing costly `get()` calls to other documents.
+ *
+ * Structural Segregation: User data is naturally segregated into private silos using the
+ * `/users/{userId}` path. This makes it impossible for one user to list or access another
+ * user's data, as the rules are scoped to the authenticated user's ID.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions for readable and maintainable rules.
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's ID matches the provided userId.
+     * This is the primary function for enforcing data ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks if a document currently exists in Firestore.
+     * Crucial for secure update and delete operations.
+     */
+    function isExistingDocument() {
+      return resource != null;
+    }
+
+    /**
+     * A composite function that verifies ownership AND ensures the document exists.
+     * Used for all state-changing operations like update and delete.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && isExistingDocument();
+    }
+
+    /**
+     * Validates that the user document being created has an 'id' field
+     * that matches the user's authentication UID. This enforces relational
+     * integrity between the document path and its content.
+     */
+    function isCreatingOwnProfile(userId) {
+      return isOwner(userId) && request.resource.data.id == userId;
+    }
+
+    /**
+     * Ensures the user's primary 'id' field cannot be changed after creation.
+     */
+    function isNotChangingOwnerId() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * Validates that the resume analysis being created has a 'userId' field
+     * that matches the user's authentication UID. This enforces relational
+     * integrity between the subcollection path and its content.
+     */
+    function isCreatingOwnAnalysis(userId) {
+      return isOwner(userId) && request.resource.data.userId == userId;
+    }
+
+    /**
+     * Ensures the 'userId' field in a resume analysis cannot be changed after creation.
+     */
+    function isNotChangingAnalysisOwner() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    /**
+     * @description Rules for the user profile document.
+     * @path /users/{userId}
+     * @allow A user can create their own profile document: (create) users/user_abc for user_abc.
+     * @deny A user cannot list all other users: (list) /users.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isCreatingOwnProfile(userId);
+      allow update: if isExistingOwner(userId) && isNotChangingOwnerId();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for a user's resume analysis documents.
+     * @path /users/{userId}/resumeAnalyses/{resumeAnalysisId}
+     * @allow A user can list all of their own resume analyses: (list) /users/user_abc/resumeAnalyses.
+     * @deny Another user cannot read an analysis: (get) /users/user_abc/resumeAnalyses/analysis_123 by user_xyz.
+     * @principle Enforces document ownership for all operations within a user-specific subcollection.
+     */
+    match /users/{userId}/resumeAnalyses/{resumeAnalysisId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isCreatingOwnAnalysis(userId);
+      allow update: if isExistingOwner(userId) && isNotChangingAnalysisOwner();
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}

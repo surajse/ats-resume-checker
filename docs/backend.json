@@ -1,0 +1,141 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the ResumeAce application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "plan": {
+          "type": "string",
+          "description": "The user's subscription plan (e.g., free, premium)."
+        },
+        "dailyChecks": {
+          "type": "number",
+          "description": "Number of resume checks the user has performed today."
+        },
+        "lastCheckDate": {
+          "type": "string",
+          "description": "Date of the user's last resume check.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "plan",
+        "dailyChecks",
+        "lastCheckDate"
+      ]
+    },
+    "ResumeAnalysis": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ResumeAnalysis",
+      "type": "object",
+      "description": "Represents the analysis of a resume.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the resume analysis."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who performed the analysis. (Relationship: User 1:N ResumeAnalysis)"
+        },
+        "resumeText": {
+          "type": "string",
+          "description": "The text content of the analyzed resume."
+        },
+        "jobDescriptionText": {
+          "type": "string",
+          "description": "The text content of the job description used for the analysis."
+        },
+        "atsScore": {
+          "type": "number",
+          "description": "The calculated ATS score for the resume."
+        },
+        "keywordMatchPercentage": {
+          "type": "number",
+          "description": "Percentage of keywords matched between the resume and job description."
+        },
+        "missingKeywords": {
+          "type": "array",
+          "description": "List of keywords missing from the resume compared to the job description.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "optimizedResumeText": {
+          "type": "string",
+          "description": "The optimized ATS-friendly version of the resume."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "resumeText",
+        "jobDescriptionText",
+        "atsScore",
+        "keywordMatchPercentage",
+        "missingKeywords",
+        "optimizedResumeText"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Uses path-based ownership. Contains user email, plan type, daily check count, and last check date.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/resumeAnalyses/{resumeAnalysisId}",
+        "definition": {
+          "entityName": "ResumeAnalysis",
+          "schema": {
+            "$ref": "#/backend/entities/ResumeAnalysis"
+          },
+          "description": "Stores resume analysis results associated with a specific user. Uses path-based ownership. Includes resume text, job description text, ATS score, keyword match percentage, missing keywords, and the optimized resume text.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user who performed the analysis."
+            },
+            {
+              "name": "resumeAnalysisId",
+              "description": "The unique identifier for the resume analysis document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the ATS Resume Checker application's requirements for user management and resume analysis while adhering to the principles of Authorization Independence and QAPs.  \n\n**Authorization Independence:** The structure avoids hierarchical authorization dependencies by storing all authorization-related data directly within the relevant document or collection. Specifically, the `ResumeAnalysis` collection relies on the `userId` field within each document, allowing security rules to enforce ownership without needing to `get()` parent user documents.  \n\n**QAPs (Rules are not Filters):** The structure employs Structural Segregation to enable secure list operations. User data and resume analyses are stored in separate collections with clearly defined access rules, avoiding the need for complex filtering in security rules. Path-based ownership is used for user-owned data (`/users/{userId}/resumeAnalyses/{resumeAnalysisId}`), ensuring that users can only access their own resume analysis data. This structure, combined with the defined security rules, prevents unauthorized access and ensures that list operations are secure and efficient.\n\n**User entity:** Contains user-specific information like email, plan, daily check limits, and the last check date. This allows for easy management of user accounts and their associated usage limits.\n\n**ResumeAnalysis entity:** Stores the data related to a single resume analysis, including the resume text, job description, ATS score, keyword analysis results, and optimized resume text. By storing the `userId` within each `ResumeAnalysis` document, we establish a clear ownership relationship without relying on hierarchical `get()` calls in security rules. This supports atomic operations and simplifies the rules.\n\nThis structure balances data organization with security and scalability, making it suitable for the ATS Resume Checker application."
+  }
+}
