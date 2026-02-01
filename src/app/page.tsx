@@ -36,16 +36,17 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-body">
+      <div className="absolute top-0 z-[-2] h-screen w-screen bg-background bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(110,42,241,0.15),rgba(255,255,255,0))]"></div>
       <Header />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-5xl">
             <div className="text-center mb-12">
-              <h2 className="font-headline text-4xl font-extrabold tracking-tight text-primary sm:text-5xl">
+              <h2 className="font-headline text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-b from-primary via-primary/80 to-primary/70 bg-clip-text text-transparent">
                 Get Your Resume ATS-Ready
               </h2>
-              <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                Paste your resume and a job description to see how well you match. Our tool analyzes keywords, formatting, and more to give you an instant ATS score.
+              <p className="mt-6 max-w-3xl mx-auto text-lg text-muted-foreground">
+                Check your resume against any job description. Get an instant ATS score, keyword analysis, and AI-powered suggestions to land your dream job.
               </p>
             </div>
             
@@ -67,7 +68,7 @@ export default function Home() {
                 />
               ) : (
                 !isLoading && (
-                  <Alert className="mt-8 bg-card">
+                  <Alert className="mt-8 bg-card/50 backdrop-blur-sm border border-border/20">
                     <Terminal className="h-4 w-4" />
                     <AlertTitle>Awaiting Analysis</AlertTitle>
                     <AlertDescription>

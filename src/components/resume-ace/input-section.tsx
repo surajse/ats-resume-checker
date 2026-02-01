@@ -32,7 +32,7 @@ export function InputSection({ onAnalyze, isLoading }: InputSectionProps) {
   };
 
   return (
-    <Card className="shadow-lg border-2 border-transparent focus-within:border-primary transition-colors duration-300">
+    <Card className="bg-card/50 backdrop-blur-sm border border-border/20 shadow-xl">
       <CardHeader>
         <CardTitle>Resume and Job Details</CardTitle>
         <CardDescription>
@@ -43,14 +43,14 @@ export function InputSection({ onAnalyze, isLoading }: InputSectionProps) {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <Textarea
             placeholder="Paste your resume text here..."
-            className="min-h-[300px] text-sm focus:ring-1 focus:ring-ring"
+            className="min-h-[300px] text-sm focus:ring-1 focus:ring-ring bg-background/50"
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
             aria-label="Resume Text Area"
           />
           <Textarea
             placeholder="Paste the job description here (optional)..."
-            className="min-h-[300px] text-sm focus:ring-1 focus:ring-ring"
+            className="min-h-[300px] text-sm focus:ring-1 focus:ring-ring bg-background/50"
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
             aria-label="Job Description Text Area"
@@ -71,7 +71,8 @@ export function InputSection({ onAnalyze, isLoading }: InputSectionProps) {
           <Button
             onClick={handleButtonClick}
             disabled={isLoading}
-            className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground"
+            size="lg"
+            className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 transition-transform duration-200 hover:scale-105"
           >
             {isLoading ? (
               <>

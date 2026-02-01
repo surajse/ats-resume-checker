@@ -32,7 +32,7 @@ export function AnalysisResults({ analysis, resumeText, jobDescription }: Analys
   const keywordMatchRatio = keywords.jdKeywords.length > 0 ? keywords.matched.length / keywords.jdKeywords.length : 1;
 
   return (
-    <Card className="shadow-lg animate-in fade-in-50 duration-500">
+    <Card className="bg-card/50 backdrop-blur-sm border border-border/20 shadow-xl animate-in fade-in-50 duration-500">
       <CardHeader>
         <CardTitle className="text-2xl">Analysis Report</CardTitle>
         <CardDescription>Here's a breakdown of your resume's ATS performance.</CardDescription>
@@ -85,7 +85,7 @@ export function AnalysisResults({ analysis, resumeText, jobDescription }: Analys
 
           <TabsContent value="content" className="mt-6 space-y-6">
              <div className="grid gap-6 md:grid-cols-2">
-                <Card className="p-4">
+                <Card className="p-4 bg-secondary/30">
                   <h4 className="font-semibold flex items-center gap-2 mb-3"><FileText className="h-5 w-5 text-primary"/>Resume Structure</h4>
                   <div className="space-y-3">
                     <ResultItem pass={wordCount.pass} text={`Word Count: ${wordCount.count} (Ideal: 450-800)`} />
@@ -94,7 +94,7 @@ export function AnalysisResults({ analysis, resumeText, jobDescription }: Analys
                     <ResultItem pass={sections.found.includes('education')} text={`Education section: ${sections.found.includes('education') ? 'Found' : 'Missing'}`} />
                   </div>
                 </Card>
-                <Card className="p-4">
+                <Card className="p-4 bg-secondary/30">
                   <h4 className="font-semibold flex items-center gap-2 mb-3"><PenTool className="h-5 w-5 text-primary"/>Formatting</h4>
                   <div className="space-y-3">
                    <ResultItem pass={formatting.longParagraphs === 0} text={`Long paragraphs (>100 words): ${formatting.longParagraphs}`} />
@@ -102,7 +102,7 @@ export function AnalysisResults({ analysis, resumeText, jobDescription }: Analys
                   </div>
                 </Card>
              </div>
-             <Card className="p-4">
+             <Card className="p-4 bg-secondary/30">
                 <h4 className="font-semibold flex items-center gap-2 mb-2"><MessageSquareWarning className="h-5 w-5 text-primary"/>Weak Language</h4>
                 <p className="text-sm text-muted-foreground mb-3">These phrases can weaken your resume's impact. Consider replacing them.</p>
                 {formatting.weakVerbs.length > 0 ? (
