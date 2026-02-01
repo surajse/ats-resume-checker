@@ -9,6 +9,7 @@ import { InputSection } from '@/components/resume-ace/input-section';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
+import { FaqSection } from '@/components/resume-ace/faq-section';
 
 export default function Home() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
@@ -80,6 +81,7 @@ export default function Home() {
               )}
             </div>
           </div>
+          <FaqSection />
         </div>
       </main>
       <footer className="py-6 mt-16 text-center text-sm text-muted-foreground border-t">
