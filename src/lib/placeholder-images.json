@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "ats-hero",
+      "description": "A modern resume document on a screen with a circular ATS score indicator.",
+      "imageUrl": "https://picsum.photos/seed/ats-hero/1280/720",
+      "imageHint": "resume score"
+    },
+    {
+      "id": "ats-how-it-works",
+      "description": "Flow diagram showing how an applicant tracking system scans a resume.",
+      "imageUrl": "https://images.unsplash.com/photo-1618044733300-9472054094ee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZmxvdyUyMGRpYWdyYW18ZW58MHx8fHwxNzY5ODU5NzM4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "flow diagram"
+    },
+    {
+      "id": "ats-score-visual",
+      "description": "Dashboard-style UI displaying an ATS resume score breakdown.",
+      "imageUrl": "https://images.unsplash.com/photo-1622816188655-9e99d5197616?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkYXNoYm9hcmQlMjB1aXxlbnwwfHx8fDE3Njk5MDUxOTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dashboard ui"
+    }
+  ]
 }
